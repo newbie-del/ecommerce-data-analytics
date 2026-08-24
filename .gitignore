@@ -1,0 +1,74 @@
+# ===========================================================================
+#  What is committed, and why
+# ===========================================================================
+#  COMMITTED:
+#    data/raw/Global Superstore.xls  (17 MB) - the provenance of the entire
+#      project. Re-fetching it depends on a third-party repository staying
+#      online, and the LFS-pointer problem documented in PROJECT_PROVENANCE.txt
+#      makes it non-trivial to find again. Worth the 17 MB.
+#    All code, SQL, reports, figures, and the executed notebook with outputs.
+#    The small dimension tables - a reviewer can inspect the resolved customers,
+#      products and RFM segments without running anything.
+#
+#  IGNORED: the four large fact tables below (57 MB combined). Every one is
+#    regenerated in under a minute by:
+#        python src/data_cleaning.py && python src/feature_engineering.py
+#    Committing them would add ~57 MB of binary-ish churn on every change to the
+#    pipeline while adding nothing a reviewer cannot regenerate.
+# ===========================================================================
+
+# Large regenerable fact tables ---------------------------------------------
+data/processed/orders_features.csv
+data/processed/orders_clean.csv
+data/processed/orders_agg.csv
+dashboard/data/fact_sales.csv
+
+# Everything else under data/processed and dashboard/data IS tracked:
+#   customers.csv, customer_metrics.csv, products.csv, rfm_segments.csv,
+#   rfm_segment_summary.csv, cohort_retention.csv, cohort_counts.csv,
+#   regional_managers.csv, monthly_kpis.csv
+#   dim_date.csv, dim_customer.csv, dim_product.csv, dim_geography.csv,
+#   dim_returns_coverage.csv, model_manifest.json
+#
+# reports/ is tracked in full - the data quality report, the verification
+# report and the facts JSONs are the EVIDENCE for the claims in the README.
+# Ignoring them would leave the numbers unsupported.
+
+# Power BI ------------------------------------------------------------------
+*.pbix
+*.pbip
+.pbi/
+**/.pbi/
+**/.pbitmp/
+
+# Python --------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+env/
+.Python
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Jupyter -------------------------------------------------------------------
+.ipynb_checkpoints/
+# NOTE: notebooks/ecommerce_analysis.ipynb is tracked WITH its outputs, on
+# purpose. Stripping them would leave a reviewer with 14 empty figure cells
+# unless they installed the dependencies and ran the whole pipeline first.
+
+# Editors, tooling, OS ------------------------------------------------------
+.vscode/
+.idea/
+.serena/
+.claude/
+*.swp
+*~
+Thumbs.db
+ehthumbs.db
+desktop.ini
+$RECYCLE.BIN/
+.DS_Store
