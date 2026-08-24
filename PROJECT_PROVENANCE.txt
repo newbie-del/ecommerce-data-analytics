@@ -1,0 +1,459 @@
+================================================================================
+ E-COMMERCE ANALYTICS  -  PROJECT PROVENANCE & BUILD LOG
+================================================================================
+ Location : D:\DA-projects\ecommerce-analytics\
+ Built    : 2026-08-26
+ Purpose  : Full honest record of where the data came from, what is real vs
+            derived, what was built, what was verified, and what was
+            deliberately NOT done.
+ Read this before presenting the project so you can answer any question about it.
+================================================================================
+
+
+--------------------------------------------------------------------------------
+ 1. THE DATASET  -  IS IT REAL OR FAKE?
+--------------------------------------------------------------------------------
+
+  STATUS: **100% REAL.** This is the genuine Tableau "Global Superstore"
+  training/demo dataset, obtained complete with all three sheets.
+
+  Nothing was synthesised. Unlike the Blinkit project in this repository (which
+  had to be reconstructed because the real source was unreachable), every row,
+  every price, every profit figure and every return here is from the real file.
+
+  EXACT SOURCE (HTTP 200, 18,223,616 bytes):
+    https://media.githubusercontent.com/media/Zebfred/ENIT_reference/master/
+      Mobile_Laptop/Additional_Resources/DataViz-Lesson-Plans/01-Lesson-Plans/
+      20-Tableau/2/Activities/11-Ins-LOD/Resources/Global%20Superstore.xls
+
+    Repository : Zebfred/ENIT_reference  (a Tableau course materials mirror)
+    Format     : legacy .xls (OLE2), read with xlrd
+
+  HOW IT WAS FOUND - worth knowing, because it is not obvious:
+    Ten guessed raw.githubusercontent.com URLs all returned 404. The GitHub code
+    search API found three repositories carrying the original Tableau workbook.
+    Two were unusable:
+      - anirudhmungre/sneaky-lessons : raw URL returns a 133-byte GIT LFS
+        POINTER, not the file. The media.githubusercontent.com LFS endpoint
+        returned 404 for it.
+      - Pinkkygold/PowerBI-projects : the file is 4 bytes. Broken commit.
+    The Zebfred copy is ALSO LFS-tracked, so raw.githubusercontent.com serves
+    only a 133-byte pointer. The real 18 MB object came from
+    media.githubusercontent.com, which is the LFS content endpoint.
+
+    If you ever need to re-fetch it: the raw URL will look like it works and
+    return a tiny text file starting with "version https://git-lfs...". Use the
+    media. host instead.
+
+  TWO OTHER COPIES WERE FOUND AND REJECTED - the reason matters:
+    - vy-loc/global-superstore-dataset/superstore.csv (15.8 MB, 51,290 rows).
+      REJECTED: it is a Tableau export in which the Sales column is int64 -
+      revenue is TRUNCATED to whole numbers (19 instead of 2309.650). It also
+      carries a junk Chinese column and only 27 dot-separated columns. Using it
+      would have silently destroyed all revenue precision.
+    - manuramos08/supabase-etl (.xlsx, 51,290 rows, 24 clean columns).
+      USABLE and correct, but it has only the Orders sheet - NO Returns sheet.
+      Choosing it would have made the whole Operations & Returns page
+      impossible.
+    The Zebfred .xls was chosen because it is the only source found with all
+    three original sheets AND full float precision.
+
+
+--------------------------------------------------------------------------------
+ 2. FINAL DATASET FACTS
+--------------------------------------------------------------------------------
+
+  File: data/raw/Global Superstore.xls   (the raw download, UNMODIFIED)
+
+    Sheet "Orders"  : 51,290 rows x 24 cols
+    Sheet "Returns" :  1,173 rows x  3 cols  (Returned, Order ID, Market)
+    Sheet "People"  :     13 rows x  2 cols  (regional managers)
+
+    Period                : 2011-01-01 to 2014-12-31 (48 gapless months)
+    Order lines           : 51,290
+    Orders (composite key): 25,754     <- NOT 25,035; see section 4
+    Customers (resolved)  : 795        <- NOT 1,590; see section 4
+    Products              : 10,292
+    Countries / Markets   : 147 / 7
+    Regions               : 13
+    Categories            : 3 (Office Supplies, Technology, Furniture)
+    Sub-categories        : 17
+
+    Total revenue         : $12,642,501.91
+    Total cost (derived)  : $11,175,044.62
+    Total profit          : $1,467,457.29
+    Profit margin         : 11.61%
+    Discount given        : $2,363,988.32  (15.75% of list revenue)
+    Shipping cost         : $1,352,815.70  (10.70% of revenue)
+    Units                 : 178,312
+    Avg / median order    : $490.89 / $201.30
+    Loss-making lines     : 12,544 (24.46%), totalling -$920,646.16
+
+
+--------------------------------------------------------------------------------
+ 3. DATA QUALITY  -  THE HONEST HEADLINE
+--------------------------------------------------------------------------------
+
+  Unlike the IBM HR dataset (which arrived spotless), this real extract has
+  GENUINE structural defects. But it has no trivial dirt either:
+
+    Missing values          : ONE column only - Postal Code, 41,296 of 51,290
+                              (80.51%). Structural: the field only exists for
+                              US rows. NOT imputed. Inventing postcodes for 147
+                              countries would be fabrication.
+    Exact duplicate rows    : 0
+    Duplicates on all
+      business fields       : 0
+    Invalid values          : 0 negative revenue, 0 negative quantity,
+                              0 negative shipping, 0 zero-quantity lines
+    Unparseable dates       : 0
+    Ship before order date  : 0
+    Impossible derived cost : 0
+
+  So NO ROWS WERE DROPPED. The cleaning stage is not about deletion; it is about
+  four structural problems that would each silently corrupt the analysis. Full
+  audit with evidence: reports/data_quality_report.md.
+
+
+--------------------------------------------------------------------------------
+ 4. THE FOUR STRUCTURAL DEFECTS  (the substantive analytical work)
+--------------------------------------------------------------------------------
+
+  (a) EVERY CUSTOMER IS RECORDED TWICE.
+      All 795 customer names carry EXACTLY two customer_ids. The split is
+      geographic: one id serves APAC/EU/LATAM/US, the other Africa/EMEA.
+      Aaron Bergman is both AB-10015 and AB-15.
+      IMPACT IF MISSED: 1,590 "customers" instead of 795; every customer's
+      lifetime value halved and split across two rows; RFM, CLV, cohort and
+      retention analysis all wrong.
+      FIX: resolve to the person via customer_key; retain customer_id so raw
+      records stay traceable.
+
+  (b) ORDER IDs ARE REUSED.
+      659 order_ids appear against two different customers on two different
+      dates (2,701 lines). order_id alone yields 25,035 "orders";
+      (order_id, customer_id, order_date) yields 25,754 with zero remaining
+      collisions.
+      IMPACT IF MISSED: average order value overstated by 2.9%.
+
+  (c) DISCOUNT CARRIES FLOAT ARTIFACTS *AND* REAL 3-DECIMAL TIERS.
+      0.15000000000000002 and 0.44999999999999996 are binary-representation
+      noise. But 0.002, 0.202, 0.402 and 0.602 are GENUINE discount levels on
+      629 order lines.
+      FIX: round to 3dp (29 raw values -> 27). Rounding to 2dp - the reflexive
+      choice - would collapse those tiers into 0.00/0.20/0.40/0.60 and destroy
+      a real pricing distinction on 629 rows.
+
+  (d) THE RETURNS SHEET USES A DIFFERENT MARKET LABEL AND COVERS ONLY 4 OF 7
+      MARKETS.
+      Returns says "United States"; Orders says "US". And there are ZERO return
+      records for Africa, Canada and EMEA (5,037 orders).
+      FIX: normalise the label, then join on (order_id, market). Joining on
+      order_id alone flags 3,050 lines; the correct composite join flags 3,043 -
+      the 7 extras are false positives created by defect (b).
+      AND: return rate is computed ONLY over the four covered markets. Counting
+      the unmeasured markets as zero would report 4.67% instead of the true
+      5.81% - a 1.14pp understatement - and invent a flawless returns record
+      for three markets that were never measured.
+
+  ALSO INVESTIGATED AND RESOLVED:
+      38 (order_id, product_id) collisions were inspected INDIVIDUALLY rather
+      than dropped. 28 are legitimate split lines with different quantities;
+      9 differ ONLY in shipping cost (one order despatched as two parcels);
+      1 belongs to a different customer on a different date. ZERO unexplained.
+      A blanket drop_duplicates() would have deleted real revenue.
+
+      457 product_ids carry more than one product name, and 1,944 product names
+      are reused across different ids. product_id is used as the key because it
+      never crosses a category boundary; product_label supplies one canonical
+      name per id, and products.csv flags the ambiguous ids.
+
+
+--------------------------------------------------------------------------------
+ 5. WHAT IS REAL vs DERIVED  (read this before quoting any number)
+--------------------------------------------------------------------------------
+
+  REAL, straight from the source:
+    revenue (Sales), profit, quantity, discount, shipping_cost, order_date,
+    ship_date, ship_mode, order_priority, category, sub_category, product name,
+    customer name, segment, city, state, country, market, region, and RETURNS.
+
+  DERIVED EXACTLY (no assumption):
+    cost              = revenue - profit          (profit is real, so cost is
+                                                   a measurement, not a model)
+    list_revenue      = revenue / (1 - discount)
+    discount_amount   = list_revenue - revenue
+
+    The "revenue is NET of discount" relationship was TESTED, not assumed:
+    across 6,671 products sold both at full price and at a discount, the NET
+    model reproduces observed unit price with 0.0% median error, versus 40% if
+    revenue were gross. See reports/data_quality_report.md section 10.
+
+  DERIVED WITH A STATED LIMITATION:
+    brand             = first token of product_name. Reliable in aggregate -
+                        467 brands, 78 of them on 100+ lines covering 91.8% of
+                        rows, only 0.22% of lines fall back to "Unknown". BUT
+                        multi-word brands truncate ("Binney" for "Binney &
+                        Smith") and 3.7% of product_ids disagree internally.
+                        Labelled a derivation everywhere it appears.
+    signup_date       = each customer's FIRST OBSERVED order. Anyone trading
+                        before 2011-01-01 is left-censored, so tenure is a
+                        floor, not a fact.
+    "delivery" time   = order-to-SHIP lag. The workbook has no delivery date.
+                        Reported under the honest name throughout.
+
+
+--------------------------------------------------------------------------------
+ 6. THE MOST IMPORTANT ANALYTICAL CATCH  -  IT IS A CLOSED PANEL
+--------------------------------------------------------------------------------
+
+  The brief assumes a normal e-commerce business. This dataset is not one. It is
+  a CLOSED PANEL of 795 customers observed for 48 months:
+
+    - Minimum orders per customer : 15   (median 32, max 47)
+    - One-time customers          : 0
+    - Customers acquired after
+      2011                        : 0    (all 795 first ordered during 2011)
+    - Customers dormant >180 days : 1    (median dormancy 16 days)
+    - Top 20% share of revenue    : 30.0%  (Gini 0.180)
+
+  CONSEQUENCE - four metrics the brief asks for carry NO information here, and
+  are reported as degenerate rather than shipped as flat charts:
+    * "Repeat purchase rate"    -> 100% by construction
+    * "One-time customers"      -> zero exist
+    * "New vs returning"        -> 0% new in 2012, 2013 and 2014
+    * Churn / "Lost customers"  -> no churn signal; 1 customer beyond 180 days
+
+  CONSEQUENCE - the 80/20 rule DOES NOT HOLD. The top 20% of customers hold
+  30% of revenue, not 80%. The standard recommendation "protect your top 20%"
+  has nothing to attach to, and was explicitly NOT given.
+
+  CONSEQUENCE - cohort retention does not decay (trend -0.21pp/month, p = 0.09,
+  not significant across 47 months). Observed mean retention 43.8% matches the
+  ~49% Poisson probability of at least one order per month implied by the
+  average purchase rate of 0.67 orders/month. The cohort grid is measuring
+  PURCHASE CADENCE, not survival. Presenting a flat heatmap as strong retention
+  would be a misreading; presenting a decay curve would require inventing one.
+
+  A BUG THIS CAUGHT IN MY OWN CODE: the first RFM implementation used low
+  relative frequency as a proxy for "new customer" and assigned 91 customers to
+  "New Customers" - every one of them acquired in 2011 with 17-31 orders. The
+  rule was changed to gate on acquisition TENURE, which correctly returns ZERO.
+  The empty segment is shown rather than deleted.
+
+
+--------------------------------------------------------------------------------
+ 7. EVERYTHING THAT WAS BUILT
+--------------------------------------------------------------------------------
+
+  data/raw/
+    Global Superstore.xls           real source, 3 sheets, UNMODIFIED
+
+  data/processed/                   (large fact tables are gitignored -
+                                     regenerate with the two pipeline commands)
+    orders_clean.csv                51,290 x 30  validated order lines
+    orders_features.csv             51,290 x 48  + all derived metrics
+    orders_agg.csv                  25,754       one row per real order
+    customers.csv / customer_metrics.csv   795   resolved customers
+    products.csv                    10,292
+    monthly_kpis.csv                48 months with MoM/YoY
+    rfm_segments.csv                795 with scores, segment, action, caveat
+    rfm_segment_summary.csv         6 segments with actual R/F/M ranges
+    cohort_retention.csv / cohort_counts.csv
+    regional_managers.csv           the People sheet
+
+  src/  (4 modules)
+    data_cleaning.py                audit, resolve identities, join returns,
+                                    8 reconciliation assertions
+    feature_engineering.py          all derived metrics, order/customer/monthly
+                                    aggregates
+    rfm_analysis.py                 quintile RFM, cohorts, degeneracy report
+    verify_claims.py                178 assertions + executes all the SQL
+
+  sql/  (5 files, portable ANSI SQL)
+    00_schema.sql                   star-ish DDL, indexes, returns-coverage dim
+    sales_analysis.sql              9 queries  - totals, MoM, YoY, category,
+                                    region, discount bands, seasonality
+    product_analysis.sql            8 queries  - top/bottom, quadrants, brands,
+                                    discount-driven losses
+    customer_analysis.sql           8 queries  - top customers, repeat, RFM in
+                                    SQL, cohorts, declining spend
+    operations_analysis.sql        10 queries  - coverage-aware returns, ship
+                                    lag, shipping cost, priority
+
+  notebooks/
+    ecommerce_analysis.ipynb        48 cells, 26 code cells ALL EXECUTED with
+                                    outputs embedded, 14 figures, 12 spec
+                                    sections + advanced analysis
+    build_notebook.py               authors and executes the notebook above.
+                                    NOTE: it OVERWRITES the .ipynb, so edit this
+                                    script rather than the notebook directly.
+                                    Not needed to read the analysis - the
+                                    committed notebook already has its outputs.
+
+  dashboard/
+    build_star_schema.py            6-table star schema, 12 integrity checks
+    data/*.csv                      the model inputs
+    data/model_manifest.json        tables, 6 relationships, integrity results
+    measures.dax                    ~45 DAX measures incl. coverage-aware
+                                    return rate and USERELATIONSHIP fulfilment
+    DASHBOARD_SPEC.md               4 pages, every visual + its question
+    README.md                       build steps and honest status
+
+  reports/
+    business_insights.md            the executive report
+    data_quality_report.md          15-section audit with evidence
+    verification_report.md          178 PASS / 0 FAIL
+    data_quality_facts.json / insight_facts.json / segmentation_facts.json
+    figures/                        14 analysis PNGs
+
+  README.md, requirements.txt, .gitignore, PROJECT_PROVENANCE.txt
+
+
+--------------------------------------------------------------------------------
+ 8. HOW IT WAS VERIFIED
+--------------------------------------------------------------------------------
+
+  src/verify_claims.py asserts EVERY numeric claim in the README, the notebook
+  and business_insights.md against the processed data, and additionally EXECUTES
+  the SQL layer.
+
+    FINAL RUN : 178 PASS / 0 FAIL
+    SQL       : 50 statements executed against SQLite 3.50.4, 0 errors
+    Cross-check: 26 assertions that SQL and pandas agree - total revenue, cost,
+                 profit, order count, customer count, per-category revenue and
+                 profit, discount-band loss rates, the single loss-making
+                 sub-category, return rate, coverage exclusions, and RFM totals.
+
+  ERRORS THIS PROCESS CAUGHT IN MY OWN NARRATIVE (written before the numbers
+  were computed, then corrected):
+    1. Claimed "three sub-categories destroy value". Truth: exactly ONE
+       (Tables).
+    2. Claimed "the loss-making regions are unambiguous" and recommended
+       exiting regions. Truth: ZERO regions and ZERO markets are loss-making.
+       This nearly became a recommendation to retreat from profitable
+       territory.
+    3. Claimed margin at zero discount was "+30%". Truth: +25.3%.
+    4. Claimed heavily discounted lines "average the same units". Truth: they
+       average FEWER (2.84 vs 3.40) - which strengthens the argument, but the
+       original wording was wrong.
+    5. Claimed "a December spike each year". Truth: December peaks in 2011-2013
+       but NOVEMBER peaks in 2014.
+    6. Claimed "returns concentrate by sub-category". Truth: they do NOT - the
+       spread is 6.33%-9.10%, a 1.44x ratio. There is no hotspot, which changed
+       the recommendation from "investigate the worst categories" to "treat
+       returns as a systemic priced-in cost".
+    7. Gini stated as 0.19 (actual 0.180); mean retention as ~40% (actual
+       43.8%); median order value as $204 (actual $201.30).
+
+  Point 2 and point 6 would each have produced a confidently wrong business
+  recommendation. That is what the verification layer is for.
+
+
+--------------------------------------------------------------------------------
+ 9. IMPORTANT CAVEAT  -  DASHBOARD BUILD STATUS
+--------------------------------------------------------------------------------
+
+  UPDATE: Power BI Desktop is available at D:\Power-bi\powerbi\bin\PBIDesktop.exe,
+  and the dashboard build has been completed after the original caveat below was
+  written.
+
+  What now exists:
+
+    - dashboard/EcommerceAnalytics.pbip
+    - dashboard/EcommerceAnalytics.SemanticModel/ with TMDL tables, measures and
+      relationships
+    - dashboard/EcommerceAnalytics.Report/ with four PBIR report pages
+    - reports/figures/dashboard_1_executive_overview.png
+    - reports/figures/dashboard_2_sales_product.png
+    - reports/figures/dashboard_3_customer_analytics.png
+    - reports/figures/dashboard_4_operations_returns.png
+
+  What is verified outside Power BI: the 7-table star schema, 12/12 integrity
+  checks, exact revenue/profit reconciliation, generated PBIP/PBIR/TMDL JSON
+  files, and the 178 Python/SQL claim checks.
+
+  Remaining caveat: DAX measures are authored into the semantic model and listed
+  in measures.dax, but the independent source of truth remains src/verify_claims.py
+  until the opened Power BI model is checked against the twelve expected measures
+  in dashboard/README.md. Two specific wrong numbers to watch for - both
+  plausible-looking, both meaning a broken key: Total Orders = 25,035 (counting
+  order_id) and Total Customers = 1,590 (counting customer_id).
+
+
+--------------------------------------------------------------------------------
+ 10. OTHER CAVEATS (all stated in the README too)
+--------------------------------------------------------------------------------
+
+  - SHIPPING vs PROFIT, UNRESOLVED: whether shipping_cost is already deducted
+    inside the recorded profit cannot be determined from this extract. Shipping
+    is 10.70% of revenue, so netting it again would cut margin from 11.61% to
+    0.91%. Profit is reported exactly as recorded; shipping is reported
+    separately; profit_after_shipping exists only as an explicitly labelled
+    scenario column and is never used as a headline. This ambiguity is real and
+    is not resolved by this project.
+
+  - Association, not causation. Discount correlates with collapsing margin and
+    not with volume; that is not proof that cutting discount raises profit by
+    the full amount. Recommendation 2 is specifically a controlled test.
+
+  - CURRENCY IS ASSUMED to be a single consistent unit (USD). The workbook has
+    no currency column despite covering 147 countries. If the source mixed
+    currencies, cross-market comparisons would be affected. Nothing in the data
+    lets this be checked.
+
+  - Returns record only WHETHER an order came back, never why. No return-reason
+    analysis is possible.
+
+  - Only 4 years, and a closed panel. Nothing here supports a forecast.
+
+  - RFM segment labels are RELATIVE positions within this panel. "Lost
+    Customers" means a median of 49 days since last order, not churn. Every
+    segment ships with its actual ranges and a label_caveat column.
+
+  - SQL was executed on SQLite, not MySQL. MySQL 8.0 is installed and running
+    on this machine but no credentials were available (ERROR 1045). The SQL is
+    written in portable ANSI form with all date parts precomputed specifically
+    so it runs unmodified on MySQL, PostgreSQL, SQLite and DuckDB. One
+    portability bug was found and fixed during this work: a median threshold
+    written as `rn = (n+1)/2` works on SQLite (integer division) but returns an
+    EMPTY set on MySQL (5146.5 matches no row). It is now `rn*2 = n+1 OR
+    rn*2 = n+2`.
+
+  - SQL RFM vs Python RFM may differ by a customer or two at quintile
+    boundaries, because NTILE and pandas qcut break ties differently. Aggregate
+    totals agree exactly. Verified within a tolerance and disclosed rather than
+    forced.
+
+
+--------------------------------------------------------------------------------
+ 11. TECH STACK USED
+--------------------------------------------------------------------------------
+
+  Python 3.14.6 (pandas 3.0.5, numpy 2.5.0, scipy 1.18.0, matplotlib 3.11.1,
+                 seaborn 0.13.2, xlrd 2.0.2, openpyxl 3.1.5,
+                 nbformat/nbclient/nbconvert/ipykernel)
+  SQLite 3.50.4 (SQL execution and verification, via the standard library)
+  MySQL 8.0     (installed, target dialect - NOT used, no credentials)
+  Power BI      (available at D:\Power-bi\powerbi\bin\PBIDesktop.exe; PBIP built)
+  Windows 11
+
+
+--------------------------------------------------------------------------------
+ 12. ONE-LINE SUMMARY OF REAL vs FAKE, ACROSS THIS REPOSITORY
+--------------------------------------------------------------------------------
+
+  E-COMMERCE PROJECT : REAL data (Tableau Global Superstore, all 3 sheets,
+                       full float precision). SQL EXECUTED and cross-verified
+                       against pandas. PBIP dashboard built with exported
+                       screenshots; DAX should be spot-checked in Power BI.
+  HR PROJECT         : REAL data (IBM HR Attrition). SQL written, not executed.
+  BLINKIT PROJECT    : SYNTHETIC data (real source unreachable). SQL written,
+                       not executed.
+
+  In ALL THREE: every number is cross-verified in Python, and every limitation
+  is stated openly rather than hidden.
+
+================================================================================
+ END OF E-COMMERCE ANALYTICS PROVENANCE FILE
+================================================================================
