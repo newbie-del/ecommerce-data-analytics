@@ -1,0 +1,90 @@
+{
+  "generated_from": "data/processed/orders_features.csv",
+  "grain": "fact_sales = one row per order line",
+  "snapshot_date": "2014-12-31",
+  "tables": {
+    "fact_sales": {
+      "rows": 51290,
+      "columns": 23
+    },
+    "dim_date": {
+      "rows": 1468,
+      "columns": 14
+    },
+    "dim_customer": {
+      "rows": 795,
+      "columns": 29
+    },
+    "dim_product": {
+      "rows": 10292,
+      "columns": 15
+    },
+    "dim_geography": {
+      "rows": 3819,
+      "columns": 6
+    },
+    "dim_returns_coverage": {
+      "rows": 7,
+      "columns": 3
+    },
+    "fact_cohort_retention": {
+      "rows": 576,
+      "columns": 6
+    }
+  },
+  "relationships": [
+    {
+      "from": "fact_sales[order_date_key]",
+      "to": "dim_date[date_key]",
+      "cardinality": "many-to-one",
+      "active": true,
+      "note": "primary date role"
+    },
+    {
+      "from": "fact_sales[ship_date_key]",
+      "to": "dim_date[date_key]",
+      "cardinality": "many-to-one",
+      "active": false,
+      "note": "inactive; activate via USERELATIONSHIP for ship-date measures"
+    },
+    {
+      "from": "fact_sales[customer_key]",
+      "to": "dim_customer[customer_key]",
+      "cardinality": "many-to-one",
+      "active": true
+    },
+    {
+      "from": "fact_sales[product_key]",
+      "to": "dim_product[product_id]",
+      "cardinality": "many-to-one",
+      "active": true
+    },
+    {
+      "from": "fact_sales[geography_key]",
+      "to": "dim_geography[geography_key]",
+      "cardinality": "many-to-one",
+      "active": true
+    },
+    {
+      "from": "dim_geography[market]",
+      "to": "dim_returns_coverage[market]",
+      "cardinality": "many-to-one",
+      "active": true,
+      "note": "carries the returns-coverage flag so no visual reports 0% for an unmeasured market"
+    }
+  ],
+  "integrity_checks": {
+    "fact rows preserved": true,
+    "order_date_key resolves": true,
+    "ship_date_key resolves": true,
+    "customer_key resolves": true,
+    "product_key resolves": true,
+    "geography_key resolves": true,
+    "dim_customer unique": true,
+    "dim_product unique": true,
+    "dim_date unique": true,
+    "dim_geography unique": true,
+    "revenue preserved": true,
+    "profit preserved": true
+  }
+}

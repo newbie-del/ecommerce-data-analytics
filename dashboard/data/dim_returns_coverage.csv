@@ -1,0 +1,8 @@
+market,has_returns_data,coverage_note
+APAC,1,Returns recorded - rate is valid
+Africa,0,"NO return records - rate is UNKNOWN, not zero"
+Canada,0,"NO return records - rate is UNKNOWN, not zero"
+EMEA,0,"NO return records - rate is UNKNOWN, not zero"
+EU,1,Returns recorded - rate is valid
+LATAM,1,Returns recorded - rate is valid
+US,1,Returns recorded - rate is valid
