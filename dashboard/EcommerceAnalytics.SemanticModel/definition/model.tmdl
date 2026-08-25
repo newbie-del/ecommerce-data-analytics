@@ -1,0 +1,29 @@
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	discourageImplicitMeasures
+	sourceQueryCulture: en-US
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation PBI_QueryOrder = ["fact_sales", "dim_date", "dim_customer", "dim_product", "dim_geography", "dim_returns_coverage", "fact_cohort_retention"]
+
+annotation PBI_ProTooling = ["DevMode"]
+
+annotation __PBI_TimeIntelligenceEnabled = 1
+
+ref table fact_sales
+ref table dim_date
+ref table dim_customer
+ref table dim_product
+ref table dim_geography
+ref table dim_returns_coverage
+ref table fact_cohort_retention
+ref table DateTableTemplate_d53edfaa-3a19-4aad-bab8-66eb00a7c753
+ref table LocalDateTable_83643096-27bc-4015-9fb1-ab345c69c5a7
+ref table LocalDateTable_4c6dddf3-a956-4ebb-9c19-e6c2d39f2148
+ref table LocalDateTable_1a258b00-a099-4dc0-9593-cff7cf74acdd
+
+ref cultureInfo en-US
+

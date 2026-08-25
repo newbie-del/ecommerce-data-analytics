@@ -1,0 +1,39 @@
+table dim_returns_coverage
+	lineageTag: 513844fb-450c-48e6-8256-ab5b0c3dcd18
+
+	column market
+		dataType: string
+		lineageTag: 36c1a62c-9965-40be-ac02-8e7fea2d9004
+		summarizeBy: none
+		sourceColumn: market
+
+		annotation SummarizationSetBy = Automatic
+
+	column has_returns_data
+		dataType: int64
+		lineageTag: 8e201222-5020-4cf1-920d-cad3baf25c46
+		summarizeBy: none
+		sourceColumn: has_returns_data
+
+		annotation SummarizationSetBy = Automatic
+
+	column coverage_note
+		dataType: string
+		lineageTag: ace2eb11-f78a-446c-9c61-e53680c145ca
+		summarizeBy: none
+		sourceColumn: coverage_note
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_returns_coverage = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents("D:\DA-projects\ecommerce-analytics\dashboard\data\dim_returns_coverage.csv"), [Delimiter=",", Columns=3, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				    Typed = Table.TransformColumnTypes(Headers, {{"market", type text}, {"has_returns_data", Int64.Type}, {"coverage_note", type text}})
+				in
+				    Typed
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,142 @@
+table dim_date
+	lineageTag: 2644b954-bd6d-4d9d-8267-7aab737d1045
+
+	column date_key
+		dataType: int64
+		isHidden
+		lineageTag: 60c23151-1aa5-499f-acda-b98668b428dc
+		summarizeBy: none
+		sourceColumn: date_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column date
+		dataType: dateTime
+		formatString: yyyy-mm-dd
+		lineageTag: 24adfea9-3dcd-4935-b1b2-53657d8384d5
+		summarizeBy: none
+		sourceColumn: date
+
+		variation Variation
+			isDefault
+			relationship: 3e49367e-7c40-4956-9855-bd81f1a3253b
+			defaultHierarchy: LocalDateTable_83643096-27bc-4015-9fb1-ab345c69c5a7.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column year
+		dataType: int64
+		lineageTag: fc57ed90-765d-4ad7-a86f-dd07158db3c2
+		summarizeBy: sum
+		sourceColumn: year
+
+		annotation SummarizationSetBy = Automatic
+
+	column quarter
+		dataType: int64
+		lineageTag: 44c944a8-5f35-49cd-b2b5-e6209ddc1f02
+		summarizeBy: sum
+		sourceColumn: quarter
+
+		annotation SummarizationSetBy = Automatic
+
+	column quarter_label
+		dataType: string
+		lineageTag: 42b6b6ea-2a98-414b-ad83-0b4d3b57d42c
+		summarizeBy: none
+		sourceColumn: quarter_label
+
+		annotation SummarizationSetBy = Automatic
+
+	column month
+		dataType: int64
+		lineageTag: 09d169b4-ecaa-4965-8740-c60d222e485f
+		summarizeBy: sum
+		sourceColumn: month
+
+		annotation SummarizationSetBy = Automatic
+
+	column month_name
+		dataType: string
+		lineageTag: f603b63d-1f74-42d3-b3d6-a8c48a3d715e
+		summarizeBy: none
+		sourceColumn: month_name
+		sortByColumn: month
+
+		annotation SummarizationSetBy = Automatic
+
+	column month_short
+		dataType: string
+		lineageTag: 2255778e-334d-4cce-8247-b035c5e7abe1
+		summarizeBy: none
+		sourceColumn: month_short
+		sortByColumn: month
+
+		annotation SummarizationSetBy = Automatic
+
+	column year_month
+		dataType: string
+		lineageTag: ceb6f069-b55b-41ea-b21e-07a4143b1c0e
+		summarizeBy: none
+		sourceColumn: year_month
+
+		annotation SummarizationSetBy = Automatic
+
+	column year_month_label
+		dataType: string
+		lineageTag: d6ffa013-f90b-47a8-822d-afa715d997fc
+		summarizeBy: none
+		sourceColumn: year_month_label
+		sortByColumn: year_month_sort
+
+		annotation SummarizationSetBy = Automatic
+
+	column year_month_sort
+		dataType: int64
+		isHidden
+		lineageTag: 65e1c27e-49ab-40f2-91c8-344c0786df62
+		summarizeBy: sum
+		sourceColumn: year_month_sort
+
+		annotation SummarizationSetBy = Automatic
+
+	column day_of_week
+		dataType: string
+		lineageTag: 9333c5ca-3303-440d-999b-0d89780e8f8c
+		summarizeBy: none
+		sourceColumn: day_of_week
+		sortByColumn: day_of_week_sort
+
+		annotation SummarizationSetBy = Automatic
+
+	column day_of_week_sort
+		dataType: int64
+		isHidden
+		lineageTag: 1843a527-5301-418b-a3f5-435a925269d3
+		summarizeBy: sum
+		sourceColumn: day_of_week_sort
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_weekend
+		dataType: int64
+		lineageTag: 440c7864-1c6f-4f70-b385-ecc18832be47
+		summarizeBy: sum
+		sourceColumn: is_weekend
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_date = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents("D:\DA-projects\ecommerce-analytics\dashboard\data\dim_date.csv"), [Delimiter=",", Columns=14, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				    Typed = Table.TransformColumnTypes(Headers, {{"date_key", Int64.Type}, {"date", type date}, {"year", Int64.Type}, {"quarter", Int64.Type}, {"quarter_label", type text}, {"month", Int64.Type}, {"month_name", type text}, {"month_short", type text}, {"year_month", type text}, {"year_month_label", type text}, {"year_month_sort", Int64.Type}, {"day_of_week", type text}, {"day_of_week_sort", Int64.Type}, {"is_weekend", Int64.Type}})
+				in
+				    Typed
+
+	annotation PBI_ResultType = Table
+

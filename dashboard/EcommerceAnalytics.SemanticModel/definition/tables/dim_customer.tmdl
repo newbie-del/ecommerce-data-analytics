@@ -1,0 +1,268 @@
+table dim_customer
+	lineageTag: a999fe58-4667-4ccf-afc9-a78245db3399
+
+	column customer_key
+		dataType: string
+		isHidden
+		lineageTag: 7592c5f4-006d-4ccd-ad34-9e9d704fe2ee
+		summarizeBy: none
+		sourceColumn: customer_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column customer_segment
+		dataType: string
+		lineageTag: dd4fe349-1907-40a7-8f41-447ac88816c3
+		summarizeBy: none
+		sourceColumn: customer_segment
+
+		annotation SummarizationSetBy = Automatic
+
+	column primary_market
+		dataType: string
+		lineageTag: 59c787fe-ad55-4669-81ea-62a664b3ac9e
+		summarizeBy: none
+		sourceColumn: primary_market
+
+		annotation SummarizationSetBy = Automatic
+
+	column primary_country
+		dataType: string
+		lineageTag: aca5a26b-6341-4294-bd87-7c271885f5a6
+		summarizeBy: none
+		sourceColumn: primary_country
+
+		annotation SummarizationSetBy = Automatic
+
+	column first_order_date
+		dataType: dateTime
+		formatString: yyyy-mm-dd
+		lineageTag: bf4e4ceb-f6ed-4705-9f52-b6414aa29766
+		summarizeBy: none
+		sourceColumn: first_order_date
+
+		variation Variation
+			isDefault
+			relationship: 42aff652-f61a-4248-af7a-76c99d223cda
+			defaultHierarchy: LocalDateTable_4c6dddf3-a956-4ebb-9c19-e6c2d39f2148.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column last_order_date
+		dataType: dateTime
+		formatString: yyyy-mm-dd
+		lineageTag: db9187f4-53d7-4fce-81aa-2009775378e3
+		summarizeBy: none
+		sourceColumn: last_order_date
+
+		variation Variation
+			isDefault
+			relationship: 9bd2e456-e28b-4ecc-bcea-2f3f2b9a49ba
+			defaultHierarchy: LocalDateTable_1a258b00-a099-4dc0-9593-cff7cf74acdd.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column order_frequency
+		dataType: int64
+		lineageTag: 045e87d7-eb0b-4b21-ad40-67137cd92376
+		summarizeBy: sum
+		sourceColumn: order_frequency
+
+		annotation SummarizationSetBy = Automatic
+
+	column lifetime_revenue
+		dataType: double
+		formatString: "$"#,0
+		lineageTag: 862a65d1-d999-4df7-9329-04ac38cdf9eb
+		summarizeBy: sum
+		sourceColumn: lifetime_revenue
+
+		annotation SummarizationSetBy = Automatic
+
+	column lifetime_profit
+		dataType: double
+		formatString: "$"#,0
+		lineageTag: 1497f2dc-1462-4d45-a833-44a944909676
+		summarizeBy: sum
+		sourceColumn: lifetime_profit
+
+		annotation SummarizationSetBy = Automatic
+
+	column avg_order_value
+		dataType: double
+		formatString: "$"#,0
+		lineageTag: edca6a4a-0fae-4080-b591-2b4ae9857660
+		summarizeBy: sum
+		sourceColumn: avg_order_value
+
+		annotation SummarizationSetBy = Automatic
+
+	column profit_margin_pct
+		dataType: double
+		lineageTag: 93aea438-b986-43aa-a199-169f71f905ea
+		summarizeBy: sum
+		sourceColumn: profit_margin_pct
+
+		annotation SummarizationSetBy = Automatic
+
+	column cohort_month
+		dataType: string
+		lineageTag: fe5593c2-948e-41c7-bb70-26b34ba6e05a
+		summarizeBy: none
+		sourceColumn: cohort_month
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_repeat_customer
+		dataType: int64
+		lineageTag: 48dc085b-d4a6-4cf6-bfc8-87a1753e8731
+		summarizeBy: sum
+		sourceColumn: is_repeat_customer
+
+		annotation SummarizationSetBy = Automatic
+
+	column avg_days_between_orders
+		dataType: double
+		lineageTag: 2227bc57-bea2-4653-99a2-c799ab8b016b
+		summarizeBy: sum
+		sourceColumn: avg_days_between_orders
+
+		annotation SummarizationSetBy = Automatic
+
+	column returned_orders
+		dataType: int64
+		lineageTag: 4d0d995a-d9dd-48dd-8448-ad5bcaf4fe41
+		summarizeBy: sum
+		sourceColumn: returned_orders
+
+		annotation SummarizationSetBy = Automatic
+
+	column measured_orders
+		dataType: int64
+		lineageTag: b3dbe552-b700-456e-b438-cf0d76e81202
+		summarizeBy: sum
+		sourceColumn: measured_orders
+
+		annotation SummarizationSetBy = Automatic
+
+	column segment
+		dataType: string
+		lineageTag: d0fc35b3-1df9-44b4-b480-027e41900dc0
+		summarizeBy: none
+		sourceColumn: segment
+
+		annotation SummarizationSetBy = Automatic
+
+	column segment_action
+		dataType: string
+		lineageTag: 207f502c-2d56-400d-896a-4ba1f95e001f
+		summarizeBy: none
+		sourceColumn: segment_action
+
+		annotation SummarizationSetBy = Automatic
+
+	column label_caveat
+		dataType: string
+		lineageTag: fb7bc47f-7c6e-4ed8-b919-d3601faa25e1
+		summarizeBy: none
+		sourceColumn: label_caveat
+
+		annotation SummarizationSetBy = Automatic
+
+	column r_score
+		dataType: int64
+		lineageTag: 81643dca-d62a-47d6-92c6-b0ab8b2ebd96
+		summarizeBy: sum
+		sourceColumn: r_score
+
+		annotation SummarizationSetBy = Automatic
+
+	column f_score
+		dataType: int64
+		lineageTag: f4236535-ac75-46fc-ad0d-0c4b0999c95c
+		summarizeBy: sum
+		sourceColumn: f_score
+
+		annotation SummarizationSetBy = Automatic
+
+	column m_score
+		dataType: int64
+		lineageTag: 0945de7c-0e74-4dd3-aa49-cd7f7aa498cc
+		summarizeBy: sum
+		sourceColumn: m_score
+
+		annotation SummarizationSetBy = Automatic
+
+	column rfm_sum
+		dataType: int64
+		lineageTag: 4f8e3cf1-956e-4cec-8395-ac2c06f8d3be
+		summarizeBy: sum
+		sourceColumn: rfm_sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column days_since_last_purchase
+		dataType: int64
+		lineageTag: 8a23b1bf-7178-4595-afca-976a8e0f1884
+		summarizeBy: sum
+		sourceColumn: days_since_last_purchase
+
+		annotation SummarizationSetBy = Automatic
+
+	column days_since_first_purchase
+		dataType: int64
+		lineageTag: 9fc0c143-ce18-4137-9a97-ff017ff9a662
+		summarizeBy: sum
+		sourceColumn: days_since_first_purchase
+
+		annotation SummarizationSetBy = Automatic
+
+	column customer_name
+		dataType: string
+		lineageTag: cc0b970d-2b97-4365-9467-f717fa517e1b
+		summarizeBy: none
+		sourceColumn: customer_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_unprofitable
+		dataType: int64
+		lineageTag: 1e4c5eca-06e4-492a-b20a-b439bf4ad692
+		summarizeBy: sum
+		sourceColumn: is_unprofitable
+
+		annotation SummarizationSetBy = Automatic
+
+	column cohort_year
+		dataType: int64
+		lineageTag: f7f53b3e-40fb-42f0-8bcd-f45ca588add2
+		summarizeBy: sum
+		sourceColumn: cohort_year
+
+		annotation SummarizationSetBy = Automatic
+
+	column first_order_date_key
+		dataType: int64
+		isHidden
+		lineageTag: f4a1d2be-12ef-46af-83af-2f9e23acf840
+		summarizeBy: sum
+		sourceColumn: first_order_date_key
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_customer = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents("D:\DA-projects\ecommerce-analytics\dashboard\data\dim_customer.csv"), [Delimiter=",", Columns=29, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				    Typed = Table.TransformColumnTypes(Headers, {{"customer_key", type text}, {"customer_segment", type text}, {"primary_market", type text}, {"primary_country", type text}, {"first_order_date", type date}, {"last_order_date", type date}, {"order_frequency", Int64.Type}, {"lifetime_revenue", type number}, {"lifetime_profit", type number}, {"avg_order_value", type number}, {"profit_margin_pct", type number}, {"cohort_month", type text}, {"is_repeat_customer", Int64.Type}, {"avg_days_between_orders", type number}, {"returned_orders", Int64.Type}, {"measured_orders", Int64.Type}, {"segment", type text}, {"segment_action", type text}, {"label_caveat", type text}, {"r_score", Int64.Type}, {"f_score", Int64.Type}, {"m_score", Int64.Type}, {"rfm_sum", Int64.Type}, {"days_since_last_purchase", Int64.Type}, {"days_since_first_purchase", Int64.Type}, {"customer_name", type text}, {"is_unprofitable", Int64.Type}, {"cohort_year", Int64.Type}, {"first_order_date_key", Int64.Type}})
+				in
+				    Typed
+
+	annotation PBI_ResultType = Table
+

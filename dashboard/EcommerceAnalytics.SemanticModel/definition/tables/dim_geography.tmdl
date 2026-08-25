@@ -1,0 +1,64 @@
+table dim_geography
+	lineageTag: 99ca00b0-9114-4357-b9cd-0cd8ed98490d
+
+	column geography_key
+		dataType: int64
+		isHidden
+		lineageTag: 3f4eacb2-7127-4752-b5f8-76a105cf15c3
+		summarizeBy: none
+		sourceColumn: geography_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column market
+		dataType: string
+		lineageTag: 3fd59329-9c9e-47a1-b557-c0de5f573a08
+		summarizeBy: none
+		sourceColumn: market
+
+		annotation SummarizationSetBy = Automatic
+
+	column region
+		dataType: string
+		lineageTag: 9d81bdf3-bb60-4b0d-9790-0872270894a5
+		summarizeBy: none
+		sourceColumn: region
+
+		annotation SummarizationSetBy = Automatic
+
+	column country
+		dataType: string
+		lineageTag: 6d1e9c2a-40af-4c45-b1a4-4ff2eedd4d82
+		summarizeBy: none
+		sourceColumn: country
+
+		annotation SummarizationSetBy = Automatic
+
+	column state
+		dataType: string
+		lineageTag: 1d77abb7-f28a-4829-a1ac-861b2a728006
+		summarizeBy: none
+		sourceColumn: state
+
+		annotation SummarizationSetBy = Automatic
+
+	column city
+		dataType: string
+		lineageTag: cbc97e86-d987-4bf6-8a4d-5f9b02fd2c04
+		summarizeBy: none
+		sourceColumn: city
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_geography = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents("D:\DA-projects\ecommerce-analytics\dashboard\data\dim_geography.csv"), [Delimiter=",", Columns=6, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				    Typed = Table.TransformColumnTypes(Headers, {{"geography_key", Int64.Type}, {"market", type text}, {"region", type text}, {"country", type text}, {"state", type text}, {"city", type text}})
+				in
+				    Typed
+
+	annotation PBI_ResultType = Table
+

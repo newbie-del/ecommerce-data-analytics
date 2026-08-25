@@ -1,0 +1,138 @@
+table dim_product
+	lineageTag: 46cef0a7-06b1-42a3-a763-75e941f2a4e8
+
+	column product_id
+		dataType: string
+		isHidden
+		lineageTag: 3d4e49f3-d79e-4286-9a6a-1361cfe28255
+		summarizeBy: none
+		sourceColumn: product_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column product_label
+		dataType: string
+		lineageTag: fc00a217-41b3-4397-ac6c-9d4c3d2345a9
+		summarizeBy: none
+		sourceColumn: product_label
+
+		annotation SummarizationSetBy = Automatic
+
+	column category
+		dataType: string
+		lineageTag: d31f6189-e26c-40c0-baba-f5f82b84f07b
+		summarizeBy: none
+		sourceColumn: category
+
+		annotation SummarizationSetBy = Automatic
+
+	column sub_category
+		dataType: string
+		lineageTag: 68ab0622-e28d-4030-835b-d02f5a3d57a1
+		summarizeBy: none
+		sourceColumn: sub_category
+
+		annotation SummarizationSetBy = Automatic
+
+	column brand
+		dataType: string
+		lineageTag: ea60745f-b5f9-428e-a467-f85ff8c2797c
+		summarizeBy: none
+		sourceColumn: brand
+
+		annotation SummarizationSetBy = Automatic
+
+	column name_variants
+		dataType: int64
+		lineageTag: ae3bba94-f1e7-46c9-8d4e-bf4349a4bbfd
+		summarizeBy: none
+		sourceColumn: name_variants
+
+		annotation SummarizationSetBy = Automatic
+
+	column ambiguous_name
+		dataType: int64
+		lineageTag: 84237019-c104-4cb7-bc63-eef287facc52
+		summarizeBy: none
+		sourceColumn: ambiguous_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column lifetime_order_lines
+		dataType: int64
+		lineageTag: f1694adf-e959-4349-9627-aef97bb238f9
+		summarizeBy: none
+		sourceColumn: lifetime_order_lines
+
+		annotation SummarizationSetBy = Automatic
+
+	column lifetime_units
+		dataType: int64
+		lineageTag: 69e66073-d615-48de-b7f4-900cec01d3e5
+		summarizeBy: none
+		sourceColumn: lifetime_units
+
+		annotation SummarizationSetBy = Automatic
+
+	column lifetime_revenue
+		dataType: double
+		formatString: "$"#,0
+		lineageTag: c8f8c75a-57ee-4118-82e0-98b082b1f871
+		summarizeBy: none
+		sourceColumn: lifetime_revenue
+
+		annotation SummarizationSetBy = Automatic
+
+	column lifetime_profit
+		dataType: double
+		formatString: "$"#,0
+		lineageTag: 094f7a23-f686-4118-ac1f-2547ac1cd291
+		summarizeBy: none
+		sourceColumn: lifetime_profit
+
+		annotation SummarizationSetBy = Automatic
+
+	column lifetime_margin_pct
+		dataType: double
+		lineageTag: 5e92c0f0-9b0d-4fbb-8c39-5a526bc49b28
+		summarizeBy: none
+		sourceColumn: lifetime_margin_pct
+
+		annotation SummarizationSetBy = Automatic
+
+	column revenue_tier
+		dataType: string
+		lineageTag: 895eb336-ed8b-4065-ba2c-3b98b6fa03ce
+		summarizeBy: none
+		sourceColumn: revenue_tier
+
+		annotation SummarizationSetBy = Automatic
+
+	column profit_quadrant
+		dataType: string
+		lineageTag: a9c92e25-0f3e-44f5-98e8-eba6485a61bc
+		summarizeBy: none
+		sourceColumn: profit_quadrant
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_ambiguous_name
+		dataType: int64
+		lineageTag: 8d3f251a-9294-41d1-b6f1-ddf27e8b0164
+		summarizeBy: none
+		sourceColumn: is_ambiguous_name
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_product = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents("D:\DA-projects\ecommerce-analytics\dashboard\data\dim_product.csv"), [Delimiter=",", Columns=15, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				    Typed = Table.TransformColumnTypes(Headers, {{"product_id", type text}, {"product_label", type text}, {"category", type text}, {"sub_category", type text}, {"brand", type text}, {"name_variants", Int64.Type}, {"ambiguous_name", Int64.Type}, {"lifetime_order_lines", Int64.Type}, {"lifetime_units", Int64.Type}, {"lifetime_revenue", type number}, {"lifetime_profit", type number}, {"lifetime_margin_pct", type number}, {"revenue_tier", type text}, {"profit_quadrant", type text}, {"is_ambiguous_name", Int64.Type}})
+				in
+				    Typed
+
+	annotation PBI_ResultType = Table
+

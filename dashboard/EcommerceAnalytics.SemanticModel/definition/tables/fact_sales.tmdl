@@ -1,0 +1,573 @@
+table fact_sales
+	lineageTag: c6dbe985-0f9a-40ca-bda4-4ce9e08d0f99
+
+	/// Net revenue, already net of discount.
+	/// Verified: reports/data_quality_report.md s10.
+	measure 'Total Revenue' = SUM ( fact_sales[revenue] )
+		formatString: "$"#,0
+		displayFolder: 01 Core
+		lineageTag: bdede012-e8b5-4c97-aca8-669df96d33e1
+
+	/// Derived exactly as revenue - profit.
+	/// Not a modelled assumption.
+	measure 'Total Cost' = SUM ( fact_sales[cost] )
+		formatString: "$"#,0
+		displayFolder: 01 Core
+		lineageTag: da22cf8c-61d8-4efe-b59b-a3a62e28d283
+
+	/// Real profit from the source data.
+	measure 'Total Profit' = SUM ( fact_sales[profit] )
+		formatString: "$"#,0
+		displayFolder: 01 Core
+		lineageTag: 5b7fa716-fa31-4a2e-9c39-cdef5d46046d
+
+	/// Units sold.
+	measure 'Total Units' = SUM ( fact_sales[quantity] )
+		formatString: #,0
+		displayFolder: 01 Core
+		lineageTag: 7746406e-8d77-4d9e-ba42-418b46f37849
+
+	/// Order-line count.
+	measure 'Order Lines' = COUNTROWS ( fact_sales )
+		formatString: #,0
+		displayFolder: 01 Core
+		lineageTag: a87f93d4-e150-420c-81fa-35de8264fa73
+
+	/// Counts the COMPOSITE order key.
+	/// Counting order_id instead returns 25,035 because order_id is reused across customers and dates.
+	/// Expected: 25,754.
+	measure 'Total Orders' = DISTINCTCOUNT ( fact_sales[order_key] )
+		formatString: #,0
+		displayFolder: 01 Core
+		lineageTag: aa501c1d-68b1-437e-88e2-042ea3d9be42
+
+	/// Counts the RESOLVED person.
+	/// Counting a raw customer_id returns 1,590 because every person has two ids.
+	/// Expected: 795.
+	measure 'Total Customers' = DISTINCTCOUNT ( fact_sales[customer_key] )
+		formatString: #,0
+		displayFolder: 01 Core
+		lineageTag: 2d22e712-22f2-4544-80de-705fdd6d47cf
+
+	/// Distinct products.
+	measure 'Total Products' = DISTINCTCOUNT ( fact_sales[product_key] )
+		formatString: #,0
+		displayFolder: 01 Core
+		lineageTag: 77647ad3-c254-4c09-a1c3-1e1f9abbf50f
+
+	/// Profit over revenue.
+	/// Expected 11.61%.
+	measure 'Profit Margin %' = DIVIDE ( [Total Profit], [Total Revenue] )
+		formatString: 0.0%
+		displayFolder: 02 Profitability
+		lineageTag: ae192392-eda3-446a-83e8-1cf215c9af80
+
+	/// Pre-discount revenue: revenue / (1 - discount).
+	measure 'Total List Revenue' = SUM ( fact_sales[list_revenue] )
+		formatString: "$"#,0
+		displayFolder: 02 Profitability
+		lineageTag: 54af7207-f299-4320-a79c-98fecd0245ec
+
+	/// Total discount surrendered.
+	/// Expected $2,363,988.
+	measure 'Discount Given' = SUM ( fact_sales[discount_amount] )
+		formatString: "$"#,0
+		displayFolder: 02 Profitability
+		lineageTag: 0993b6b1-c802-4866-9f91-eb82c2b2c15b
+
+	/// Expected 15.75%.
+	measure 'Discount % of List' = DIVIDE ( [Discount Given], [Total List Revenue] )
+		formatString: 0.0%
+		displayFolder: 02 Profitability
+		lineageTag: 6611dcf6-7a6f-4c90-8071-b85f0ec83273
+
+	/// Mean line-level discount.
+	measure 'Average Discount %' = AVERAGE ( fact_sales[discount] )
+		formatString: 0.0%
+		displayFolder: 02 Profitability
+		lineageTag: f86558d9-6b8c-45f2-b9fd-f909ea5e184f
+
+	/// Lines with negative profit.
+	/// Expected 12,544.
+	measure 'Loss-Making Lines' = SUM ( fact_sales[is_loss_making] )
+		formatString: #,0
+		displayFolder: 02 Profitability
+		lineageTag: 1fa06598-4402-4369-b305-30723ed765c9
+
+	/// Expected 24.46%.
+	measure 'Loss-Making Line %' = DIVIDE ( [Loss-Making Lines], [Order Lines] )
+		formatString: 0.0%
+		displayFolder: 02 Profitability
+		lineageTag: 9c1d0b52-2edf-44ef-8eb5-e59fd8885fbd
+
+	/// Sum of negative profit.
+	/// Expected -$920,646.
+	measure 'Total Loss' = CALCULATE ( [Total Profit], KEEPFILTERS ( fact_sales[is_loss_making] = 1 ) )
+		formatString: "$"#,0
+		displayFolder: 02 Profitability
+		lineageTag: c1ae387b-7c26-445c-aa64-bdcc7c4a18ae
+
+	/// Reported SEPARATELY, never netted into profit.
+	measure 'Total Shipping Cost' = SUM ( fact_sales[shipping_cost] )
+		formatString: "$"#,0
+		displayFolder: 02 Profitability
+		lineageTag: 25955faf-73cd-4e7a-9be9-280361bfbc69
+
+	/// Expected 10.70%.
+	measure 'Shipping % of Revenue' = DIVIDE ( [Total Shipping Cost], [Total Revenue] )
+		formatString: 0.0%
+		displayFolder: 02 Profitability
+		lineageTag: 1dbbe734-3bc2-4989-bfe4-1c01bad620e6
+
+	/// SCENARIO ONLY.
+	/// Whether shipping is already inside profit cannot be determined from this extract.
+	/// Do not use on a KPI card.
+	measure 'Profit After Shipping (scenario)' = [Total Profit] - [Total Shipping Cost]
+		formatString: "$"#,0
+		displayFolder: 02 Profitability
+		lineageTag: ea664d22-500b-4b26-9dab-2501313d4ebb
+
+	/// Expected $490.89.
+	measure 'Average Order Value' = DIVIDE ( [Total Revenue], [Total Orders] )
+		formatString: "$"#,0
+		displayFolder: 03 Order value
+		lineageTag: 2e30f4df-c9ec-4978-bac6-51431875a18b
+
+	/// Expected $201.30.
+	/// Show this NEXT TO average - the mean is 2.44x the median, so AOV alone overstates a typical order by 144%.
+	measure 'Median Order Value' = MEDIANX ( VALUES ( fact_sales[order_key] ), CALCULATE ( [Total Revenue] ) )
+		formatString: "$"#,0
+		displayFolder: 03 Order value
+		lineageTag: a4aacdca-e6bb-4799-81aa-f31874ab8a21
+
+	/// Mean profit per order.
+	measure 'Average Order Profit' = DIVIDE ( [Total Profit], [Total Orders] )
+		formatString: "$"#,0
+		displayFolder: 03 Order value
+		lineageTag: f67be5a1-ee20-4221-a6ed-37a6131743fa
+
+	/// Basket size per ORDER.
+	measure 'Units per Order' = DIVIDE ( [Total Units], [Total Orders] )
+		formatString: 0.00
+		displayFolder: 03 Order value
+		lineageTag: d0f52454-b4fc-4f8c-a8f9-43e76ccb79a8
+
+	/// Units per ORDER LINE - the figure the discount analysis uses.
+	/// Flat at 3.40-3.81 from 0% to 50% discount, then FALLS to 2.84 above 50%.
+	/// Use this, not Units per Order, on any discount-versus-volume visual, so the dashboard matches the notebook.
+	measure 'Units per Line' = DIVIDE ( [Total Units], [Order Lines] )
+		formatString: 0.00
+		displayFolder: 03 Order value
+		lineageTag: 7fd1011f-112b-450f-afbb-8a798f0299d4
+
+	/// Distinct products per order.
+	measure 'Lines per Order' = DIVIDE ( [Order Lines], [Total Orders] )
+		formatString: 0.00
+		displayFolder: 03 Order value
+		lineageTag: 3f34878b-191e-4822-b4f1-b33cf60926ee
+
+	/// Expected ~32.4.
+	measure 'Orders per Customer' = DIVIDE ( [Total Orders], [Total Customers] )
+		formatString: 0.0
+		displayFolder: 03 Order value
+		lineageTag: e35217c2-1e7c-4f9d-b98b-87c0f587a940
+
+	/// Historical realised value.
+	measure 'Revenue per Customer' = DIVIDE ( [Total Revenue], [Total Customers] )
+		formatString: "$"#,0
+		displayFolder: 03 Order value
+		lineageTag: 350c967b-ab15-45d9-85f0-7320b6e5e5f7
+
+	/// Orders in markets where returns were actually recorded.
+	/// The ONLY valid denominator for a return rate here.
+	/// Expected 20,717.
+	measure 'Measured Orders' = CALCULATE ( [Total Orders], KEEPFILTERS ( fact_sales[returns_measured] = 1 ) )
+		formatString: #,0
+		displayFolder: 04 Returns
+		lineageTag: e48955f2-b347-4e00-8071-011c18d65442
+
+	/// Orders in Africa/Canada/EMEA, which have NO return records.
+	/// Expected 5,037.
+	measure 'Unmeasured Orders' = CALCULATE ( [Total Orders], KEEPFILTERS ( fact_sales[returns_measured] = 0 ) )
+		formatString: #,0
+		displayFolder: 04 Returns
+		lineageTag: cafa74d5-bbe5-4862-96e8-73fd93e717dd
+
+	/// Expected 1,203.
+	measure 'Returned Orders' = CALCULATE ( [Total Orders], KEEPFILTERS ( fact_sales[return_flag] = 1 ), KEEPFILTERS ( fact_sales[returns_measured] = 1 ) )
+		formatString: #,0
+		displayFolder: 04 Returns
+		lineageTag: c6041771-0367-49e2-8805-4cb8ba2619ae
+
+	/// Expected 5.81%.
+	measure 'Return Rate %' = DIVIDE ( [Returned Orders], [Measured Orders] )
+		formatString: 0.0%
+		displayFolder: 04 Returns
+		lineageTag: a71e53e7-58cd-4e20-b53b-661214d2ea0e
+
+	/// USE THIS IN ANY VISUAL SLICED BY MARKET.
+	/// Returns BLANK - not 0% - where no market in context has returns data, so Africa/Canada/EMEA render as a gap instead of a perfect returns record they never earned.
+	measure 'Return Rate % (safe)' = IF ( [Measured Orders] > 0, DIVIDE ( [Returned Orders], [Measured Orders] ) )
+		formatString: 0.0%
+		displayFolder: 04 Returns
+		lineageTag: 686d7ca1-2f3b-48a3-aa83-7bf498db44be
+
+	/// Expected $818,044.
+	measure 'Returned Revenue' = CALCULATE ( [Total Revenue], KEEPFILTERS ( fact_sales[return_flag] = 1 ), KEEPFILTERS ( fact_sales[returns_measured] = 1 ) )
+		formatString: "$"#,0
+		displayFolder: 04 Returns
+		lineageTag: 337734a9-c1bc-48f5-b61c-b881c53daf17
+
+	/// Requires dim_date marked as the model date table.
+	measure 'Revenue PY' = CALCULATE ( [Total Revenue], SAMEPERIODLASTYEAR ( dim_date[date] ) )
+		formatString: "$"#,0
+		displayFolder: 05 Time
+		lineageTag: 7c3cd9fe-6316-453c-8247-dcd20178bea5
+
+	/// Year-on-year growth.
+	/// 2012 +18.5%, 2013 +27.2%, 2014 +26.3%.
+	measure 'Revenue YoY %' =
+			VAR Prior = [Revenue PY]
+			RETURN IF ( NOT ISBLANK ( Prior ), DIVIDE ( [Total Revenue] - Prior, Prior ) )
+		formatString: +0.0%;-0.0%
+		displayFolder: 05 Time
+		lineageTag: 9abc87c2-3382-4e43-8875-b41c0bbd15e2
+
+	/// Prior-year profit.
+	measure 'Profit PY' = CALCULATE ( [Total Profit], SAMEPERIODLASTYEAR ( dim_date[date] ) )
+		formatString: "$"#,0
+		displayFolder: 05 Time
+		lineageTag: 5b4f2271-2f7d-4073-843b-f26e3a6c8d9f
+
+	/// Year-on-year profit growth.
+	measure 'Profit YoY %' =
+			VAR Prior = [Profit PY]
+			RETURN IF ( NOT ISBLANK ( Prior ), DIVIDE ( [Total Profit] - Prior, Prior ) )
+		formatString: +0.0%;-0.0%
+		displayFolder: 05 Time
+		lineageTag: 65df99bb-15f4-432d-ade1-fbc8411366eb
+
+	/// Month-on-month growth.
+	measure 'Revenue MoM %' =
+			VAR Prior = CALCULATE ( [Total Revenue], DATEADD ( dim_date[date], -1, MONTH ) )
+			RETURN IF ( NOT ISBLANK ( Prior ), DIVIDE ( [Total Revenue] - Prior, Prior ) )
+		formatString: +0.0%;-0.0%
+		displayFolder: 05 Time
+		lineageTag: 8f95bd0e-30f0-4fe6-ac06-6770a1d392f1
+
+	/// Year to date.
+	measure 'Revenue YTD' = TOTALYTD ( [Total Revenue], dim_date[date] )
+		formatString: "$"#,0
+		displayFolder: 05 Time
+		lineageTag: cbc4f04d-41f6-4236-a05c-8631354da51d
+
+	/// Smooths the monthly series, which is dominated by a Nov-Dec peak.
+	measure 'Revenue 3M Rolling Avg' = AVERAGEX ( DATESINPERIOD ( dim_date[date], MAX ( dim_date[date] ), -3, MONTH ), CALCULATE ( [Total Revenue] ) )
+		formatString: "$"#,0
+		displayFolder: 05 Time
+		lineageTag: 3299661f-3b56-4ebb-85cb-487971a845e7
+
+	/// Uses the INACTIVE ship-date relationship.
+	/// This is why dim_date has two relationships to the fact table.
+	measure 'Revenue Shipped (by ship date)' = CALCULATE ( [Total Revenue], USERELATIONSHIP ( fact_sales[ship_date_key], dim_date[date_key] ) )
+		formatString: "$"#,0
+		displayFolder: 05 Time
+		lineageTag: daad6999-3280-4644-993e-7e40cb2f2c6f
+
+	/// ORDER-TO-SHIP lag.
+	/// The dataset has NO delivery date, so this is not delivery time and there is no genuine late-delivery rate.
+	measure 'Avg Ship Lag Days' = AVERAGEX ( VALUES ( fact_sales[order_key] ), CALCULATE ( MAX ( fact_sales[ship_lag_days] ) ) )
+		formatString: 0.00
+		displayFolder: 06 Fulfilment
+		lineageTag: a4989293-80fa-4a42-9bb5-2080558bada0
+
+	/// Expected 7.
+	measure 'Max Ship Lag Days' = MAX ( fact_sales[ship_lag_days] )
+		formatString: #,0
+		displayFolder: 06 Fulfilment
+		lineageTag: 042cec93-6cce-4e6f-a618-4d80fea621f7
+
+	/// Expected 795 - every customer is a repeat customer.
+	measure 'Repeat Customers' = COALESCE ( COUNTROWS ( FILTER ( VALUES ( dim_customer[customer_key] ), [Total Orders] > 1 ) ), 0 )
+		formatString: #,0
+		displayFolder: 07 Customers
+		lineageTag: 7b0da7d2-5ff3-4a7d-a701-23962a1caa35
+
+	/// DEGENERATE: expected 0.
+	/// COALESCE forces a literal 0 rather than BLANK, so the card reads '0' instead of '(Blank)' - the point is that zero one-time customers exist, and a blank card fails to say that.
+	measure 'One-Time Customers' = COALESCE ( COUNTROWS ( FILTER ( VALUES ( dim_customer[customer_key] ), [Total Orders] = 1 ) ), 0 )
+		formatString: #,0
+		displayFolder: 07 Customers
+		lineageTag: 566cddad-ac5f-40b7-a1ec-857827704c49
+
+	/// DEGENERATE: expected 100% by construction.
+	/// Carries no information here.
+	measure 'Repeat Purchase Rate %' = DIVIDE ( [Repeat Customers], [Total Customers] )
+		formatString: 0.0%
+		displayFolder: 07 Customers
+		lineageTag: 0d88e911-98cd-41b9-89b5-e88f0e1cca78
+
+	/// Mean days since last purchase.
+	/// Exists as a MEASURE because a scatter chart cannot put a raw column on an axis without an explicit aggregation.
+	measure 'Avg Recency Days' = AVERAGE ( dim_customer[days_since_last_purchase] )
+		formatString: 0.0
+		displayFolder: 07 Customers
+		lineageTag: 428c9276-90d7-4e93-8404-78a4cf46b15c
+
+	/// Mean lifetime revenue per customer, for the recency-vs-value scatter.
+	measure 'Avg Customer Revenue' = AVERAGE ( dim_customer[lifetime_revenue] )
+		formatString: "$"#,0
+		displayFolder: 07 Customers
+		lineageTag: 7692c372-4d90-4674-9cd8-48e990fc3c07
+
+	/// Customers whose FIRST order is in context - the correct definition of new.
+	/// Non-zero only in 2011: the panel is closed after year one.
+	measure 'New Customers' = CALCULATE ( DISTINCTCOUNT ( dim_customer[customer_key] ), USERELATIONSHIP ( dim_customer[first_order_date_key], dim_date[date_key] ) )
+		formatString: #,0
+		displayFolder: 07 Customers
+		lineageTag: b43aed89-e1f4-4b5d-90e1-3b40ffffac9e
+
+	/// Expected 67.
+	/// Real revenue, negative lifetime profit.
+	measure 'Unprofitable Customers' = CALCULATE ( DISTINCTCOUNT ( dim_customer[customer_key] ), KEEPFILTERS ( dim_customer[is_unprofitable] = 1 ) )
+		formatString: #,0
+		displayFolder: 07 Customers
+		lineageTag: 6c429f93-3942-479e-9ca2-ac0279edda3d
+
+	/// Expected ~30%, NOT ~80%.
+	/// The Pareto assumption fails on this dataset (Gini 0.18), so there is no top tier to protect.
+	measure 'Top 20% Customer Revenue Share %' =
+			VAR TotalRev = [Total Revenue]
+			VAR N = ROUNDUP ( DISTINCTCOUNT ( dim_customer[customer_key] ) * 0.2, 0 )
+			VAR TopCustomers =
+			    TOPN ( N, VALUES ( dim_customer[customer_key] ), [Total Revenue], DESC )
+			VAR TopRev = SUMX ( TopCustomers, [Total Revenue] )
+			RETURN DIVIDE ( TopRev, TotalRev )
+		formatString: 0.0%
+		displayFolder: 07 Customers
+		lineageTag: d4e18fc6-dadf-491b-9503-83704b9b793f
+
+	/// Put this on the Operations page so the coverage gap cannot be missed.
+	measure 'Returns Coverage Note' =
+			VAR Unmeasured = [Unmeasured Orders]
+			RETURN IF ( Unmeasured > 0,
+			    "Return rate excludes " & FORMAT ( Unmeasured, "#,0" ) &
+			    " orders in markets with no returns data (Africa, Canada, EMEA)",
+			    "All orders in scope have returns data" )
+		displayFolder: 09 Notes
+		lineageTag: f544db52-4242-46b1-939f-3f625e50e8b8
+
+	/// Puts the dataset's limits on the report rather than in a footnote.
+	measure 'Dataset Caveat' = "795-customer closed panel, all acquired 2011. No one-time customers, no demographics, no payment method, no order status. Returns unmeasured in Africa/Canada/EMEA."
+		displayFolder: 09 Notes
+		lineageTag: d5ae1545-9c9c-45fe-83b2-bf15e67cc00c
+
+	column order_line_id
+		dataType: int64
+		isHidden
+		lineageTag: 892b5e5e-b3ff-409e-bccf-a6cebb0e0dd3
+		summarizeBy: none
+		sourceColumn: order_line_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_id
+		dataType: string
+		lineageTag: b78c5e3a-1f2d-4a53-a9b8-46ca54996eb7
+		summarizeBy: none
+		sourceColumn: order_id
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_key
+		dataType: string
+		lineageTag: 9e98805e-7a8c-442b-91c4-ca750088c52c
+		summarizeBy: none
+		sourceColumn: order_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_date_key
+		dataType: int64
+		isHidden
+		lineageTag: 64100ec4-f737-4eb1-9ead-f48674cb8003
+		summarizeBy: none
+		sourceColumn: order_date_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column ship_date_key
+		dataType: int64
+		isHidden
+		lineageTag: 44686276-7c37-4ad9-b59b-42d8d75c20d6
+		summarizeBy: none
+		sourceColumn: ship_date_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column customer_key
+		dataType: string
+		isHidden
+		lineageTag: 4e134f25-9eff-4452-a5cf-8e7c91aa8dd0
+		summarizeBy: none
+		sourceColumn: customer_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column product_key
+		dataType: string
+		isHidden
+		lineageTag: 43d87018-19e9-47c2-8a22-9ecf0f4d09f4
+		summarizeBy: none
+		sourceColumn: product_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column geography_key
+		dataType: int64
+		isHidden
+		lineageTag: aa3d005b-3ce6-4388-81d9-1be9be5c4643
+		summarizeBy: none
+		sourceColumn: geography_key
+
+		annotation SummarizationSetBy = Automatic
+
+	column ship_mode
+		dataType: string
+		lineageTag: f2ebc0aa-9763-4772-a5aa-d0009406e8ee
+		summarizeBy: none
+		sourceColumn: ship_mode
+
+		annotation SummarizationSetBy = Automatic
+
+	column order_priority
+		dataType: string
+		lineageTag: e05224db-8221-497d-b754-c52f5431869b
+		summarizeBy: none
+		sourceColumn: order_priority
+
+		annotation SummarizationSetBy = Automatic
+
+	column discount_band
+		dataType: string
+		lineageTag: 8f1a5128-9b39-47c8-a286-6ddffce85e3f
+		summarizeBy: none
+		sourceColumn: discount_band
+
+		annotation SummarizationSetBy = Automatic
+
+	column quantity
+		dataType: int64
+		lineageTag: 81c30599-02d4-4528-ab24-8326efba8abc
+		summarizeBy: none
+		sourceColumn: quantity
+
+		annotation SummarizationSetBy = Automatic
+
+	column revenue
+		dataType: double
+		formatString: "$"#,0.00
+		lineageTag: 0d135966-8ee3-4950-8590-3befda269596
+		summarizeBy: none
+		sourceColumn: revenue
+
+		annotation SummarizationSetBy = Automatic
+
+	column list_revenue
+		dataType: double
+		formatString: "$"#,0.00
+		lineageTag: 0c929c61-5cd2-4031-a891-6706849d1184
+		summarizeBy: none
+		sourceColumn: list_revenue
+
+		annotation SummarizationSetBy = Automatic
+
+	column discount
+		dataType: double
+		formatString: 0.0%
+		lineageTag: 532e3c6b-7abc-4c99-afaa-06db5b95a581
+		summarizeBy: none
+		sourceColumn: discount
+
+		annotation SummarizationSetBy = Automatic
+
+	column discount_amount
+		dataType: double
+		formatString: "$"#,0.00
+		lineageTag: 506841ac-d6ac-4f52-a432-b1294feb784c
+		summarizeBy: none
+		sourceColumn: discount_amount
+
+		annotation SummarizationSetBy = Automatic
+
+	column cost
+		dataType: double
+		formatString: "$"#,0.00
+		lineageTag: 85e6ee6f-027b-4476-987b-c0e3dc5a3b60
+		summarizeBy: none
+		sourceColumn: cost
+
+		annotation SummarizationSetBy = Automatic
+
+	column profit
+		dataType: double
+		formatString: "$"#,0.00
+		lineageTag: bcab232e-0382-49a6-b930-27208910fa7a
+		summarizeBy: none
+		sourceColumn: profit
+
+		annotation SummarizationSetBy = Automatic
+
+	column shipping_cost
+		dataType: double
+		formatString: "$"#,0.00
+		lineageTag: 40e0f33f-15eb-4c61-97e2-9051b5c8aa33
+		summarizeBy: none
+		sourceColumn: shipping_cost
+
+		annotation SummarizationSetBy = Automatic
+
+	column return_flag
+		dataType: int64
+		lineageTag: 568930b8-e06a-441e-a9ab-7492edeaf269
+		summarizeBy: none
+		sourceColumn: return_flag
+
+		annotation SummarizationSetBy = Automatic
+
+	column returns_measured
+		dataType: int64
+		lineageTag: 40e47d44-9d15-46bf-beaa-060f825567c0
+		summarizeBy: none
+		sourceColumn: returns_measured
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_loss_making
+		dataType: int64
+		lineageTag: ee6eb150-707d-4cab-a73e-b6d7b94cdfa4
+		summarizeBy: none
+		sourceColumn: is_loss_making
+
+		annotation SummarizationSetBy = Automatic
+
+	column ship_lag_days
+		dataType: int64
+		lineageTag: edd059a6-acd9-4534-bc51-e4d13a86c5cc
+		summarizeBy: none
+		sourceColumn: ship_lag_days
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_sales = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents("D:\DA-projects\ecommerce-analytics\dashboard\data\fact_sales.csv"), [Delimiter=",", Columns=23, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				    Typed = Table.TransformColumnTypes(Headers, {{"order_line_id", Int64.Type}, {"order_id", type text}, {"order_key", type text}, {"order_date_key", Int64.Type}, {"ship_date_key", Int64.Type}, {"customer_key", type text}, {"product_key", type text}, {"geography_key", Int64.Type}, {"ship_mode", type text}, {"order_priority", type text}, {"discount_band", type text}, {"quantity", Int64.Type}, {"revenue", type number}, {"list_revenue", type number}, {"discount", type number}, {"discount_amount", type number}, {"cost", type number}, {"profit", type number}, {"shipping_cost", type number}, {"return_flag", Int64.Type}, {"returns_measured", Int64.Type}, {"is_loss_making", Int64.Type}, {"ship_lag_days", Int64.Type}})
+				in
+				    Typed
+
+	annotation PBI_ResultType = Table
+

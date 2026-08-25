@@ -1,0 +1,45 @@
+relationship 8bb91e00-9196-5d30-a819-2cdb58d322a0
+	fromColumn: fact_sales.order_date_key
+	toColumn: dim_date.date_key
+
+relationship 9b014606-3c5a-5574-a6bf-ad5ab6a7b4ee
+	isActive: false
+	fromColumn: fact_sales.ship_date_key
+	toColumn: dim_date.date_key
+
+relationship de882edb-0c9f-5ba7-a2c5-5e805736128f
+	fromColumn: fact_sales.customer_key
+	toColumn: dim_customer.customer_key
+
+relationship 2e7000ca-fb17-57f0-96e0-ffc2a18bb006
+	fromColumn: fact_sales.product_key
+	toColumn: dim_product.product_id
+
+relationship 7451607b-6548-5c5b-85cf-4ebf7917d31e
+	fromColumn: fact_sales.geography_key
+	toColumn: dim_geography.geography_key
+
+relationship 2620df0c-f40d-5cad-b293-92926448f57e
+	isActive: false
+	fromColumn: dim_customer.first_order_date_key
+	toColumn: dim_date.date_key
+
+relationship 957b8246-5cec-5d6b-a255-ac56f9d272dd
+	fromColumn: dim_geography.market
+	toColumn: dim_returns_coverage.market
+
+relationship 3e49367e-7c40-4956-9855-bd81f1a3253b
+	joinOnDateBehavior: datePartOnly
+	fromColumn: dim_date.date
+	toColumn: LocalDateTable_83643096-27bc-4015-9fb1-ab345c69c5a7.Date
+
+relationship 42aff652-f61a-4248-af7a-76c99d223cda
+	joinOnDateBehavior: datePartOnly
+	fromColumn: dim_customer.first_order_date
+	toColumn: LocalDateTable_4c6dddf3-a956-4ebb-9c19-e6c2d39f2148.Date
+
+relationship 9bd2e456-e28b-4ecc-bcea-2f3f2b9a49ba
+	joinOnDateBehavior: datePartOnly
+	fromColumn: dim_customer.last_order_date
+	toColumn: LocalDateTable_1a258b00-a099-4dc0-9593-cff7cf74acdd.Date
+

@@ -1,0 +1,77 @@
+table fact_cohort_retention
+	lineageTag: b88e5f39-aef1-46de-928e-b7f1aec69c63
+
+	/// Cohort retention from the precomputed matrix, so the dashboard heatmap and the notebook heatmap are the SAME numbers rather than two independent calculations.
+	/// This table is deliberately UNRELATED to the rest of the model: it is a fixed historical analysis and page slicers must not distort it.
+	/// Read it knowing it measures the probability of purchasing in a month, not survival - it does not decay (trend -0.21pp/month, p = 0.09).
+	measure 'Retention %' = DIVIDE ( AVERAGE ( fact_cohort_retention[retention_pct] ), 100 )
+		formatString: 0.0%
+		displayFolder: 08 Cohort
+		lineageTag: 251c11bc-54b7-4315-ad3d-0e66be36a4be
+
+	/// Active customers in the cohort-period cell.
+	measure 'Cohort Customers' = SUM ( fact_cohort_retention[active_customers] )
+		formatString: #,0
+		displayFolder: 08 Cohort
+		lineageTag: 7517be97-ba74-46a3-a2d8-a98bc8a99c79
+
+	column cohort_month
+		dataType: string
+		lineageTag: c8fd069b-7b20-44f4-8d1c-d113052ffde2
+		summarizeBy: none
+		sourceColumn: cohort_month
+
+		annotation SummarizationSetBy = Automatic
+
+	column period_index
+		dataType: int64
+		lineageTag: 55db5ae2-1096-49ef-b446-497d7391226b
+		summarizeBy: none
+		sourceColumn: period_index
+
+		annotation SummarizationSetBy = Automatic
+
+	column retention_pct
+		dataType: double
+		lineageTag: f7f154cd-ce00-4382-afee-417ec00ac405
+		summarizeBy: none
+		sourceColumn: retention_pct
+
+		annotation SummarizationSetBy = Automatic
+
+	column active_customers
+		dataType: int64
+		lineageTag: 9fd48518-9712-4cc9-9729-25eecb6ec2f4
+		summarizeBy: none
+		sourceColumn: active_customers
+
+		annotation SummarizationSetBy = Automatic
+
+	column cohort_size
+		dataType: int64
+		lineageTag: 48da4d1e-bfe9-4827-bf7f-41e4243a96f1
+		summarizeBy: none
+		sourceColumn: cohort_size
+
+		annotation SummarizationSetBy = Automatic
+
+	column cohort_month_sort
+		dataType: int64
+		lineageTag: ddd8ca81-8004-4c52-908a-a51adb75bce0
+		summarizeBy: none
+		sourceColumn: cohort_month_sort
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_cohort_retention = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents("D:\DA-projects\ecommerce-analytics\dashboard\data\fact_cohort_retention.csv"), [Delimiter=",", Columns=6, Encoding=65001, QuoteStyle=QuoteStyle.Csv]),
+				    Headers = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				    Typed = Table.TransformColumnTypes(Headers, {{"cohort_month", type text}, {"period_index", Int64.Type}, {"retention_pct", type number}, {"active_customers", Int64.Type}, {"cohort_size", Int64.Type}, {"cohort_month_sort", Int64.Type}})
+				in
+				    Typed
+
+	annotation PBI_ResultType = Table
+
