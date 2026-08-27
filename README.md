@@ -549,3 +549,6 @@ To run the SQL manually against another database, load `data/processed/orders_fe
 *Every headline number in this README is reproducible from the scripts in this repository.*
 
 </div>
+
+## Release Note`r`nThis branch captures the final validation and evidence review for the ecommerce analytics handoff.
+

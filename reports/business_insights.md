@@ -284,3 +284,6 @@ Stated because the omissions are as much a part of the result as the findings:
 
 Each of these could have been approximated into something that looked complete. None
 of them would have been true.
+
+> Release note: the final customer and product insight set was stabilized for presentation handoff on 2026-08-27.
+
