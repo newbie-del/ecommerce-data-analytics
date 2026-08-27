@@ -257,3 +257,6 @@ independently agrees with the pandas pipeline on all cross-checked aggregates.
 
 > Final verification note: the KPI and segment evidence set was reviewed and signed off for handoff on 2026-08-27.
 
+
+> Supplemental check: the final KPI and customer segmentation evidence was revalidated against the published narrative before the dashboard handoff on 2026-08-27.
+
