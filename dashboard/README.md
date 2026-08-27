@@ -74,3 +74,6 @@ All twelve figures above are asserted by `src/verify_claims.py` with 178 checks 
 ## Analytical fallback
 
 The notebook at `notebooks/ecommerce_analysis.ipynb` already contains all fourteen analysis figures, executed with outputs embedded, and `reports/figures/` holds them as PNGs. The analytical findings do not depend on Power BI being available; the dashboard is a delivery surface for the same verified numbers.
+
+## Final Dashboard Note`r`nThe final report package was locked in after KPI review and validation.
+
