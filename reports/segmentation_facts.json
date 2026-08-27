@@ -1,0 +1,36 @@
+{
+  "customers": 795,
+  "one_time_customers": 0,
+  "repeat_purchase_rate_pct": 100.0,
+  "min_order_frequency": 15,
+  "median_order_frequency": 32.0,
+  "max_order_frequency": 47,
+  "acquisition_years": {
+    "2011": 795
+  },
+  "customers_acquired_after_2011": 0,
+  "distinct_cohort_months": 12,
+  "median_days_since_last_purchase": 16.0,
+  "customers_dormant_over_180d": 1,
+  "top10pct_revenue_share": 16.535378123109513,
+  "top20pct_revenue_share": 30.03647340762825,
+  "unprofitable_customers": 67,
+  "empty_segments": [
+    "New Customers"
+  ],
+  "segment_counts": {
+    "Champions": 116,
+    "Loyal Customers": 168,
+    "Potential Loyalists": 193,
+    "New Customers": 0,
+    "At Risk": 159,
+    "Lost Customers": 159
+  },
+  "degenerate_metrics": {
+    "repeat_purchase_rate": "100% - all 795 customers ordered at least 15 times. No variation to analyse.",
+    "one_time_customers": "0 exist. The spec's one-time vs repeat split cannot be drawn.",
+    "new_vs_returning": "0 customers acquired after 2011. From 2012 onward the base is 100% returning, 0% new.",
+    "pareto_80_20": "Top 20% of customers hold 30.0% of revenue, not ~80%. Revenue is close to evenly spread, so 'focus on the top 20%' is not supported by this data.",
+    "churn_and_lost": "Only 1 customer(s) dormant beyond 180 days (median 16 days). Churn analysis has almost no signal; 'Lost' is a relative label, not real attrition."
+  }
+}

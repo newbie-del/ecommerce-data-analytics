@@ -1,0 +1,110 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/1.4.0/schema.json",
+  "name": "02fea76fcaa753f78169",
+  "position": {
+    "x": 8,
+    "y": 420,
+    "z": 4,
+    "width": 780,
+    "height": 280,
+    "tabOrder": 4
+  },
+  "visual": {
+    "visualType": "matrix",
+    "query": {
+      "queryState": {
+        "Rows": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_cohort_retention"
+                    }
+                  },
+                  "Property": "cohort_month"
+                }
+              },
+              "queryRef": "fact_cohort_retention.cohort_month",
+              "nativeQueryRef": "cohort_month"
+            }
+          ]
+        },
+        "Columns": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_cohort_retention"
+                    }
+                  },
+                  "Property": "period_index"
+                }
+              },
+              "queryRef": "fact_cohort_retention.period_index",
+              "nativeQueryRef": "period_index"
+            }
+          ]
+        },
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "fact_cohort_retention"
+                    }
+                  },
+                  "Property": "Retention %"
+                }
+              },
+              "queryRef": "fact_cohort_retention.Retention %",
+              "nativeQueryRef": "Retention %"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true,
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Cohort retention by months since acquisition - measures purchase cadence, NOT survival, and does not decay'"
+                }
+              }
+            },
+            "fontSize": {
+              "expr": {
+                "Literal": {
+                  "Value": "11D"
+                }
+              }
+            },
+            "bold": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
