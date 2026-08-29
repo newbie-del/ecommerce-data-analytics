@@ -335,3 +335,6 @@ Returns Coverage Note =
 Dataset Caveat =
     "795-customer closed panel, all acquired 2011. No one-time customers, no demographics, no payment method, no order status. Returns unmeasured in Africa/Canada/EMEA."
 
+
+/// Release candidate note: final dashboard measure definitions were validated for the final delivery.
+

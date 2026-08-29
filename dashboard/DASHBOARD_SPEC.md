@@ -206,3 +206,6 @@ Applying the brief's section 16 requirements:
   specifically because a non-zero axis would misrepresent a narrow spread.
 - **Every chart has a title stating its finding**, not just its fields — "Margin
   collapses above 20% discount", not "Profit Margin % by discount_band".
+
+### Release Candidate`r`nThe dashboard specification was finalized for the final presentation package.
+
